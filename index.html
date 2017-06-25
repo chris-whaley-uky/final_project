@@ -281,7 +281,9 @@
               }
           }
 
-          function updateMap(dataLayer, getColor, currentYear, breaks) {
+          function updateMap(dataLayer) {
+
+            var breaks = getClassBreaks(dataLayer);
 
             // loop through each layer
             dataLayer.eachLayer(function(layer) {
@@ -307,6 +309,22 @@
 
             });
           }
+
+          function drawInfo() {
+
+        			var info = L.control({
+        				    position: 'topright'
+        			});
+
+              info.onAdd = function(map) {
+        				    var div = L.DomUtil.create('div', 'info');
+
+                    return div;
+
+              }
+        			info.addTo(map);
+
+            }  
 
 
 
