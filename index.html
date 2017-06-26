@@ -41,10 +41,10 @@
         }
 
         #map {
-            position: absolute;
-            width: 100%;
-            top: 0;
-            bottom: 0;
+          width: 960px;
+          height: 700px;
+          margin: 10px auto;
+          border: 2px solid #d3d3d3;
         }
 
         footer {
@@ -97,7 +97,7 @@
             margin-right: 10px;
         }
 
-        #ui-controls {
+        /*#ui-controls {
             width: 176px;
             padding: 8px 25px 8px 15px;
             background: rgba(75, 75, 75, 0.8);
@@ -107,17 +107,13 @@
         }
 
         #ui-controls .min {
-            float: left;
+            float: right;
         }
 
         #ui-controls .max {
             float: right;
             margin-right: -15px;
-        }
-
-        .year-slider {
-            width: 100%;
-        }
+        }*/
 
         label {
             font-size: 1.1em;
@@ -129,18 +125,13 @@
 <body>
     <h1>2016 Presidental Election Results in Minnesota</h1>
     <div id='ui-controls'>
-    		<label>Choose a data attribute:</label>
-    		<select id="elec-values">
-    			<option value="victory_margin" selected>2016</option>
-    			<option value="victory_margin_2012">2012</option>
-    </select>
+    <select id="elec-values">
+        <option value="victory_margin" selected>2016</option>
+        <option value="data">2012</option>
+\    </select>
+    </div> <!-- end ui-controls -->
+
     <div id="map"></div>
-    <!-- <div id="ui-controls">
-        <label><span class="min"></span><span class="max">2016</span>
-            <input type="range" min = "2012", max= "2016",
-                   value = "2016", step= "1", class="year-slider">
-        </label>
-    </div> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.3/papaparse.min.js"></script>
@@ -153,7 +144,8 @@
         var options = {
             center:[46.5, -95],
             zoom: 6.7,
-            zoomSnap: .1
+            zoomSnap: .1,
+            zoomControl: false
         }
 
         // create the Leaflet map
@@ -164,6 +156,8 @@
             subdomains: 'abcd',
             ext: 'png'
         }).addTo(map);
+
+        var attributeValue = "victory_margin";
 
 
 
@@ -186,13 +180,18 @@
                 data.data.forEach(function(datum) {
 
                 // shortcut to the data name
-                var dataName = datum.COUNTYNAME;
-
+                var dataName = datum.PCTNAME;
+                // console.log(props.pctname.toUpperCase();
+                // console.log(dataName.replace(".",""));
                 // if they match
-                if(props.countyname === dataName) {
+                dataName = dataName.replace(/[.-]/g,"").replace("TOWNSHIP", "TWP");
+
+
+
+                if(props.pctname.toUpperCase().replace(/[.-]/g,"") === dataName) {
 
                 // store the data in an object on the feature
-                props.data = datum;
+                props.data = datum.victory_margin_2012;
                 }
 
                 });
@@ -200,6 +199,7 @@
 
                 // verify your data has been bound here
                 console.log(elec2016);
+
 
                 drawMap(elec2016);
 
@@ -222,8 +222,9 @@
             }).addTo(map);
 
 
+            updateMap(dataLayer)
 
-            updateMap(dataLayer, getColor, '2016')
+            addUi(dataLayer);
 
 
             var breaks = getClassBreaks(dataLayer)
@@ -249,7 +250,7 @@
           var marginValues = [];
 
           dataLayer.eachLayer(function(layer) {
-              var value = layer.feature.properties.victory_margin;
+              var value = layer.feature[attributeValue];
               // console.log(layer.feature.properties.victory_margin);
               marginValues.push(value)
           });
@@ -264,8 +265,6 @@
 
         } //end getClassBreaks
 
-
-          // var breaks = getClassBreaks(dataLayer);
 
 
           function getColor(d, breaks) {
@@ -293,8 +292,12 @@
 
                 // update the layer color given current timestamp
                 layer.setStyle({
-                    fillColor: getColor(breaks)
+                    fillColor: getColor(props[attributeValue], breaks)
                 });
+                // console.log(props);
+                // console.log(attributeValue);
+                // console.log(props[attributeValue]);
+
 
                 // build the tooltip
                 var tooltip = '<b>' + ' Precinct Name:</b><br />' +
@@ -310,21 +313,18 @@
             });
           }
 
-          function drawInfo() {
 
-        			var info = L.control({
-        				    position: 'topright'
-        			});
+          function addUi(dataLayer) {
 
-              info.onAdd = function(map) {
-        				    var div = L.DomUtil.create('div', 'info');
+            $('select[id="elec-values"]').change(function() {
+              console.log($(this).val());
+              //code runs when change event occurs
+              attributeValue = $(this).val();
+              console.log(attributeValue);
+              updateMap(dataLayer);
+            });
+          }
 
-                    return div;
-
-              }
-        			info.addTo(map);
-
-            }  
 
 
 
